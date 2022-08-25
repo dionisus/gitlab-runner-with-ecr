@@ -39,30 +39,35 @@ Registering runner... succeeded                     runner=o6xxxxxx
 Please enter the executor: docker-ssh, shell, virtualbox, docker+machine, docker-ssh+machine, kubernetes, docker, ssh, parallels:
 docker
 Please enter the default Docker image (e.g. ruby:2.1):
-ubuntu:16.04
+docker:19.03.1-dind
 Runner registered successfully. Feel free to start it, but if it's running already the config should be automatically reloaded!
 ```
 
 This register command creates below `gitlab-runner/config.toml`:
 ```toml
 [[runners]]
-  name = "my-runner-for-using-ecr"
+  name = "2d2fa006b64a"
   url = "https://gitlab.com/"
+  id = 17152793
   token = "o6xxxxxxxxxxxxxxxxLt"
+  token_obtained_at = 2022-08-25T01:21:29Z
+  token_expires_at = 0001-01-01T00:00:00Z
   executor = "docker"
   environment = ["DOCKER_AUTH_CONFIG={\"credsStore\":\"ecr-login\"}"]
+  [runners.custom_build_dir]
+  [runners.cache]
+    [runners.cache.s3]
+    [runners.cache.gcs]
+    [runners.cache.azure]
   [runners.docker]
     tls_verify = false
-    image = "ubuntu:16.04"
+    image = "docker:19.03.1-dind"
     privileged = false
     disable_entrypoint_overwrite = false
     oom_kill_disable = false
     disable_cache = false
-    volumes = ["/cache"]
+    volumes = ["/var/run/docker.sock:/var/run/docker.sock", "/cache"]
     shm_size = 0
-  [runners.cache]
-    [runners.cache.s3]
-    [runners.cache.gcs]
 ```
 
 ## 4. docker-credential-ecr-login get

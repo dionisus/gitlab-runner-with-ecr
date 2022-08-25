@@ -1,21 +1,13 @@
-FROM gitlab/gitlab-runner:alpine-v11.5.1
+FROM ubuntu:20.04 AS build
+ENV DEBIAN_FRONTEND=noninteractive
+RUN : \
+ && apt-get update \
+ && apt-get install --no-install-recommends -y git ca-certificates amazon-ecr-credential-helper \
+ && rm -rf /var/lib/apt/lists/* \
+;
+WORKDIR /build
+RUN mv /usr/bin/docker-credential-ecr-login .
 
-ENV APP_VERSION=v0.2.0
-
-RUN apk add --no-cache ca-certificates
-RUN apk --no-cache add --virtual build-dependencies gcc g++ musl-dev go \
-    && export GOPATH=/go \
-    && export PATH=$GOPATH/bin:$PATH \
-    && mkdir $GOPATH \
-    && chmod -R 777 $GOPATH \
-    && APP_REPO=github.com/awslabs/amazon-ecr-credential-helper \
-    && git clone https://$APP_REPO $GOPATH/src/$APP_REPO \
-    && cd $GOPATH/src/$APP_REPO \
-    && git checkout $APP_VERSION \
-    && GOOS=linux CGO_ENABLED=1 go build -installsuffix cgo \
-       -a -ldflags '-s -w' -o /usr/bin/docker-credential-ecr-login \
-       ./ecr-login/cli/docker-credential-ecr-login \
-    && cd / \
-    && apk del --purge -r build-dependencies \
-    && rm -rf /go
+FROM gitlab/gitlab-runner:v15.3.0 AS deploy
+COPY --from=build /build/docker-credential-ecr-login /usr/bin/docker-credential-ecr-login
 
